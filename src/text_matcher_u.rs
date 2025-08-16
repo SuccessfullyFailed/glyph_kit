@@ -42,6 +42,7 @@ mod tests {
 		assert_eq!(["a", "ab"].match_text("xaba"), None);
 		assert_eq!(["x", "x", "ab"].match_text("xxaba"), Some(4));
 		assert_eq!(["x", "ad"].match_text("xaba"), None);
+		assert_eq!(["x", "ab", ""].match_text("xaba"), Some(3));
 	}
 
 	#[test]
@@ -50,6 +51,7 @@ mod tests {
 		assert_eq!(vec!["a", "ab"].match_text("xaba"), None);
 		assert_eq!(vec!["x", "x", "ab"].match_text("xxaba"), Some(4));
 		assert_eq!(vec!["x", "ad"].match_text("xaba"), None);
+		assert_eq!(vec!["x", "ab", ""].match_text("xaba"), Some(3));
 	}
 
 	#[test]
@@ -58,6 +60,7 @@ mod tests {
 		assert_eq!(('a', "ab").match_text("xaba"), None);
 		assert_eq!(('x', "xab").match_text("xxaba"), Some(4));
 		assert_eq!(('x', "ad").match_text("xaba"), None);
+		assert_eq!(("x", "ab", "").match_text("xaba"), Some(3));
 		assert_eq!(('x', "ab", 'a', 'x', "ab", 'a', 'x', "ab", 'a', 'x', "ab", 'a').match_text("xabaxabaxabaxabaxaba"), Some(16));
 	}
 }

@@ -46,16 +46,14 @@ impl<T> TextMatcher for T where T:Fn(&str) -> Option<usize> {
 impl<T> TextMatcher for [T] where T:TextMatcher {
 	fn match_text(&self, text:&str) -> Option<usize> {
 		let mut cursor:usize = 0;
-		let mut matcher_index:usize = 0;
 		let text_len:usize = text.len();
-		let matcher_count:usize = self.len();
-		while cursor < text_len && matcher_index < matcher_count {
-			if let Some(match_length) = self[matcher_index].match_text(&text[cursor..]) {
+		for matcher in self {
+			let text_remainder:&str = if text_len > cursor { &text[cursor..] } else { "" }; // Next matcher could match empty.
+			if let Some(match_length) = matcher.match_text(&text_remainder) {
 				cursor += match_length;
 			} else {
 				return None;
 			};
-			matcher_index += 1;
 		}
 		Some(cursor)
 	}
@@ -73,15 +71,17 @@ macro_rules! tuple_matcher {
 	($($name:ident $idx:tt), +) => {
 		impl<$($name: TextMatcher),+> TextMatcher for ($($name,)+) {
 			fn match_text(&self, text:&str) -> Option<usize> {
-				let mut consumed = 0;
+				let mut cursor = 0;
+				let text_len:usize = text.len();
 				$(
-					if let Some(len) = self.$idx.match_text(&text[consumed..]) {
-						consumed += len;
+					let text_remainder:&str = if text_len > cursor { &text[cursor..] } else { "" }; // Next matcher could match empty.
+					if let Some(len) = self.$idx.match_text(&text_remainder) {
+						cursor += len;
 					} else {
 						return None;
 					}
 				)+
-				Some(consumed)
+				Some(cursor)
 			}
 		}
 	};
