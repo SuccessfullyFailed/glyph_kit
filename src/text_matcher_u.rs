@@ -31,17 +31,17 @@ mod tests {
 
 	#[test]
 	fn test_text_matcher_list_array() {
-		assert_eq!(['x', 'a', 'b'].match_text("xaba"), Some(3));
-		assert_eq!(['a', 'a', 'b'].match_text("xaba"), None);
-		assert_eq!(['x', 'x', 'a', 'b'].match_text("xxaba"), Some(4));
-		assert_eq!(['x', 'a', 'd'].match_text("xaba"), None);
+		assert_eq!(["x", "ab"].match_text("xaba"), Some(3));
+		assert_eq!(["a", "ab"].match_text("xaba"), None);
+		assert_eq!(["x", "x", "ab"].match_text("xxaba"), Some(4));
+		assert_eq!(["x", "ad"].match_text("xaba"), None);
 	}
 
 	#[test]
 	fn test_text_matcher_list_vec() {
-		assert_eq!(vec!['x', 'a', 'b'].match_text("xaba"), Some(3));
-		assert_eq!(vec!['a', 'a', 'b'].match_text("xaba"), None);
-		assert_eq!(vec!['x', 'x', 'a', 'b'].match_text("xxaba"), Some(4));
-		assert_eq!(vec!['x', 'a', 'd'].match_text("xaba"), None);
+		assert_eq!(vec!["x", "ab"].match_text("xaba"), Some(3));
+		assert_eq!(vec!["a", "ab"].match_text("xaba"), None);
+		assert_eq!(vec!["x", "x", "ab"].match_text("xxaba"), Some(4));
+		assert_eq!(vec!["x", "ad"].match_text("xaba"), None);
 	}
 }
