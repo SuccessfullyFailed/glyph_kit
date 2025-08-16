@@ -20,6 +20,13 @@ mod tests {
 	}
 
 	#[test]
+	fn test_text_matcher_atom_string() {
+		assert_eq!("x".to_string().match_text("xaba"), Some(1));
+		assert_eq!("a".to_string().match_text("xaba"), None);
+		assert_eq!("xxa".to_string().match_text("xxaba"), Some(3));
+	}
+
+	#[test]
 	fn test_text_matcher_atom_fn() {
 		assert_eq!((|text:&str| if text == "xaba" { Some(3) } else { None }).match_text("xaba"), Some(3));
 		assert_eq!((|text:&str| if text == "daba" { Some(3) } else { None }).match_text("xaba"), None);
@@ -43,5 +50,14 @@ mod tests {
 		assert_eq!(vec!["a", "ab"].match_text("xaba"), None);
 		assert_eq!(vec!["x", "x", "ab"].match_text("xxaba"), Some(4));
 		assert_eq!(vec!["x", "ad"].match_text("xaba"), None);
+	}
+
+	#[test]
+	fn test_text_matcher_list_tuple() {
+		assert_eq!(('x', "ab").match_text("xaba"), Some(3));
+		assert_eq!(('a', "ab").match_text("xaba"), None);
+		assert_eq!(('x', "xab").match_text("xxaba"), Some(4));
+		assert_eq!(('x', "ad").match_text("xaba"), None);
+		assert_eq!(('x', "ab", 'a', 'x', "ab", 'a', 'x', "ab", 'a', 'x', "ab", 'a').match_text("xabaxabaxabaxabaxaba"), Some(16));
 	}
 }
