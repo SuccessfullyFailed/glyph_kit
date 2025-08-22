@@ -15,6 +15,10 @@ impl TextMatcher {
 		TextMatcher(Box::new(source))
 	}
 
+
+
+	/* REPETITION MATCHER METHODS */
+
 	/// Repeat the given matcher as many times as possible. Will return None when not matched once.
 	pub fn repeat_max<T:TextMatcherSource + 'static>(sub_matcher:T) -> TextMatcher {
 		TextMatcher::new(move |text:&str| {
@@ -34,6 +38,43 @@ impl TextMatcher {
 		})
 	}
 
+
+
+	/* WHITE-SPACE MATCHER METHODS */
+
+	/// Create a matcher that matches only white-space. Matches maximum one character.
+	pub fn white_space() -> TextMatcher {
+		TextMatcher::on_first_char(|char| char.is_whitespace())
+	}
+
+	/// Create a matcher that matches only linebreaks. Matches maximum one character.
+	pub fn linebreak() ->  TextMatcher {
+		TextMatcher::on_first_char(|char| LINE_BREAK_CHARS.contains(&char))
+	}
+
+	/// Create a matcher that matches only non-linebreak whitespace. Matches maximum one character.
+	pub fn inline_white_space() ->  TextMatcher {
+		TextMatcher::on_first_char(|char| char.is_whitespace() && !LINE_BREAK_CHARS.contains(&char))
+	}
+
+
+
+	/* NUMERIC MATCHER METHODS */
+
+	/// Create a matcher that matches only digits. Matches maximum one character.
+	pub fn digit() -> TextMatcher {
+		TextMatcher::on_first_char(|char| *char >= '0' && *char <= '9')
+	}
+
+	/// Create a matcher that matches unsigned integers. Matches as long as possible.
+	pub fn unsigned_integer() -> TextMatcher {
+		TextMatcher::repeat_max(TextMatcher::digit())
+	}
+
+
+
+	/* HELPER METHODS */
+	
 	/// Create a matcher that checks something on the first character.
 	fn on_first_char<T:Fn(&char) -> bool + 'static>(compare_function:T) -> TextMatcher {
 		TextMatcher::new(move |text:&str| {
@@ -46,21 +87,6 @@ impl TextMatcher {
 			}
 			None
 		})
-	}
-
-	/// Create a matcher that matches only white-space.
-	pub fn white_space() -> TextMatcher {
-		TextMatcher::on_first_char(|char| char.is_whitespace())
-	}
-
-	/// Create a matcher that matches only linebreaks.
-	pub fn linebreak() ->  TextMatcher {
-		TextMatcher::on_first_char(|char| LINE_BREAK_CHARS.contains(&char))
-	}
-
-	/// Create a matcher that matches only non-linebreak whitespace.
-	pub fn inline_white_space() ->  TextMatcher {
-		TextMatcher::on_first_char(|char| char.is_whitespace() && !LINE_BREAK_CHARS.contains(&char))
 	}
 }
 impl TextMatcherSource for TextMatcher {

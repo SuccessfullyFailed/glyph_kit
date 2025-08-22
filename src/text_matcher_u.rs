@@ -97,4 +97,21 @@ mod tests {
 		assert_eq!(TextMatcher::inline_white_space().match_text("\nxaba"), None);
 		assert_eq!(TextMatcher::inline_white_space().match_text("xaba"), None);
 	}
+
+	#[test]
+	fn test_matcher_numeric() {
+		assert_eq!(TextMatcher::digit().match_text("-19.0 xaba"), None);
+		assert_eq!(TextMatcher::digit().match_text("19.0 xaba"), Some(1));
+		assert_eq!(TextMatcher::digit().match_text("9.0 xaba"), Some(1));
+		assert_eq!(TextMatcher::digit().match_text(".0 xaba"), None);
+		assert_eq!(TextMatcher::digit().match_text("0 xaba"), Some(1));
+		assert_eq!(TextMatcher::digit().match_text(" xaba"), None);
+
+		assert_eq!(TextMatcher::unsigned_integer().match_text("-19.0 xaba"), None);
+		assert_eq!(TextMatcher::unsigned_integer().match_text("19.0 xaba"), Some(2));
+		assert_eq!(TextMatcher::unsigned_integer().match_text("9.0 xaba"), Some(1));
+		assert_eq!(TextMatcher::unsigned_integer().match_text(".0 xaba"), None);
+		assert_eq!(TextMatcher::unsigned_integer().match_text("0 xaba"), Some(1));
+		assert_eq!(TextMatcher::unsigned_integer().match_text(" xaba"), None);
+	}
 }
