@@ -39,6 +39,19 @@ impl TextMatcher {
 		})
 	}
 
+	/// Repeat the given matcher as many times as possible. Will return Some(0) when not matched once.
+	pub fn optional_repeat_max<T:TextMatcherSource + 'static>(sub_matcher:T) -> TextMatcher {
+		TextMatcher::new(move |text:&str| {
+			let mut cursor:usize = 0;
+			let mut remaining_text:&str = text;
+			while let Some(match_length) = sub_matcher.match_text(remaining_text) {
+				cursor += match_length;
+				remaining_text = if text.len() > cursor { &text[cursor..] } else { "" };
+			}
+			Some(cursor)
+		})
+	}
+
 	/// Create a matcher that tries to match the given sub-matcher, but still returns Some(0) on mismatch.
 	pub fn optional<T:TextMatcherSource + 'static>(sub_matcher:T) -> TextMatcher {
 		TextMatcher::new(move |text:&str| {

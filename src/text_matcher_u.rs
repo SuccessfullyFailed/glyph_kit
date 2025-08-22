@@ -99,6 +99,14 @@ mod tests {
 	}
 
 	#[test]
+	fn test_matcher_optional_repeat_max() {
+		let matcher:TextMatcher = TextMatcher::optional_repeat_max("xa");
+		assert_eq!(matcher.match_text("xaxaxaxaba"), Some(8));
+		assert_eq!(matcher.match_text("baba"), Some(0));
+		assert_eq!(matcher.match_text(""), Some(0));
+	}
+
+	#[test]
 	fn test_matcher_optional() {
 		let matcher:TextMatcher = TextMatcher::optional("xa");
 		assert_eq!(matcher.match_text("xaxaxaxaba"), Some(2));
