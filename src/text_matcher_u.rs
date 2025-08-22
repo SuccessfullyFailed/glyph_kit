@@ -55,15 +55,19 @@ mod tests {
 		let matcher:TextMatcher = TextMatcher::new("xa") | 'b';
 		assert_eq!(matcher.match_text("xaba"), Some(2));
 		assert_eq!(matcher.match_text("baba"), Some(1));
+		assert_eq!(matcher.match_text(""), None);
 
 		let matcher:TextMatcher = TextMatcher::new("xa") | "xaba";
 		assert_eq!(matcher.match_text("xaba"), Some(2));
+		assert_eq!(matcher.match_text(""), None);
 
 		let matcher:TextMatcher = TextMatcher::new("xa") | "daba";
 		assert_eq!(matcher.match_text("daba"), Some(4));
+		assert_eq!(matcher.match_text(""), None);
 
 		let matcher:TextMatcher = TextMatcher::new("xa") | "ba";
 		assert_eq!(matcher.match_text("haba"), None);
+		assert_eq!(matcher.match_text(""), None);
 	}
 
 	#[test]
@@ -71,9 +75,11 @@ mod tests {
 		let matcher:TextMatcher = !TextMatcher::new("xa") + 'b';
 		assert_eq!(matcher.match_text("xaba"), None);
 		assert_eq!(matcher.match_text("baba"), Some(1));
+		assert_eq!(matcher.match_text(""), None);
 
 		let matcher:TextMatcher = !TextMatcher::new("xa") | "xaba";
 		assert_eq!(matcher.match_text("xaba"), Some(4));
+		assert_eq!(matcher.match_text(""), Some(0));
 	}
 
 	#[test]
@@ -81,6 +87,7 @@ mod tests {
 		let matcher:TextMatcher = TextMatcher::repeat_max("xa");
 		assert_eq!(matcher.match_text("xaxaxaxaba"), Some(8));
 		assert_eq!(matcher.match_text("baba"), None);
+		assert_eq!(matcher.match_text(""), None);
 	}
 
 	#[test]
@@ -88,14 +95,17 @@ mod tests {
 		assert_eq!(TextMatcher::white_space().match_text(" \nxaba"), Some(1));
 		assert_eq!(TextMatcher::white_space().match_text("\nxaba"), Some(1));
 		assert_eq!(TextMatcher::white_space().match_text("xaba"), None);
+		assert_eq!(TextMatcher::white_space().match_text(""), None);
 		
 		assert_eq!(TextMatcher::linebreak().match_text(" \nxaba"), None);
 		assert_eq!(TextMatcher::linebreak().match_text("\nxaba"), Some(1));
 		assert_eq!(TextMatcher::linebreak().match_text("xaba"), None);
+		assert_eq!(TextMatcher::linebreak().match_text(""), None);
 		
 		assert_eq!(TextMatcher::inline_white_space().match_text(" \nxaba"), Some(1));
 		assert_eq!(TextMatcher::inline_white_space().match_text("\nxaba"), None);
 		assert_eq!(TextMatcher::inline_white_space().match_text("xaba"), None);
+		assert_eq!(TextMatcher::inline_white_space().match_text(""), None);
 	}
 
 	#[test]
@@ -106,6 +116,7 @@ mod tests {
 		assert_eq!(TextMatcher::digit().match_text(".0 xaba"), None);
 		assert_eq!(TextMatcher::digit().match_text("0 xaba"), Some(1));
 		assert_eq!(TextMatcher::digit().match_text(" xaba"), None);
+		assert_eq!(TextMatcher::digit().match_text(""), None);
 
 		assert_eq!(TextMatcher::unsigned_integer().match_text("-19.0 xaba"), None);
 		assert_eq!(TextMatcher::unsigned_integer().match_text("19.0 xaba"), Some(2));
@@ -113,5 +124,6 @@ mod tests {
 		assert_eq!(TextMatcher::unsigned_integer().match_text(".0 xaba"), None);
 		assert_eq!(TextMatcher::unsigned_integer().match_text("0 xaba"), Some(1));
 		assert_eq!(TextMatcher::unsigned_integer().match_text(" xaba"), None);
+		assert_eq!(TextMatcher::unsigned_integer().match_text(""), None);
 	}
 }
