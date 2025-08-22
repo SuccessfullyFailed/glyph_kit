@@ -1,5 +1,5 @@
 use crate::{ TextMatcher, TextMatcherSource };
-use std::ops::Index;
+use std::{ fmt::{ Display, Formatter, Result }, ops::Index };
 
 
 
@@ -8,6 +8,11 @@ pub struct TextMatchResult {
 	pub match_type:String,
 	pub match_length:usize,
 	pub match_contents:String
+}
+impl Display for TextMatchResult {
+	fn fmt(&self, f:&mut Formatter<'_>) -> Result {
+		write!(f, "{}:\n{}\n\n", self.match_type, self.match_contents.split('\n').map(|line| format!(">>\t{line}")).collect::<Vec<String>>().join("\n"))
+	}
 }
 
 
@@ -73,6 +78,9 @@ impl TextMatcherSet {
 		while let Some(match_result) = self.match_text(remaining_text) {
 			results.push(match_result.clone());
 			cursor += match_result.match_length;
+			if match_result.match_length == 0 {
+				panic!("Matched a {} with length 0 in multi_match_text. As this will increase the cursor, this would repeat indefinitely. Aborting rest of parsing.", match_result.match_type);
+			}
 			remaining_text = if text.len() > cursor { &text[cursor..] } else { "" };
 		}
 		results

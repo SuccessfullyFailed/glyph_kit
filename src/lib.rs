@@ -1,3 +1,5 @@
+pub mod languages;
+
 mod text_matcher_set;
 mod text_matcher_set_u;
 mod text_matcher;
