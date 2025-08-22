@@ -10,6 +10,25 @@ impl TextMatcher {
 	pub fn new<T:TextMatcherSource + 'static>(source:T) -> TextMatcher {
 		TextMatcher(Box::new(source))
 	}
+
+	/// Repeat the given matcher as many times as possible. Will return None when not matched once.
+	pub fn repeat_max<T:TextMatcherSource + 'static>(sub_matcher:T) -> TextMatcher {
+		TextMatcher::new(move |text:&str| {
+			let mut matched_any:bool = false;
+			let mut cursor:usize = 0;
+			let mut remaining_text:&str = text;
+			while let Some(match_length) = sub_matcher.match_text(remaining_text) {
+				matched_any = true;
+				cursor += match_length;
+				remaining_text = if text.len() > cursor { &text[cursor..] } else { "" };
+			}
+			if matched_any {
+				Some(cursor)
+			} else {
+				None
+			}
+		})
+	}
 }
 impl TextMatcherSource for TextMatcher {
 	fn match_text(&self, text:&str) -> Option<usize> {

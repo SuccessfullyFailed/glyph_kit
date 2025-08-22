@@ -75,4 +75,11 @@ mod tests {
 		let matcher:TextMatcher = !TextMatcher::new("xa") | "xaba";
 		assert_eq!(matcher.match_text("xaba"), Some(4));
 	}
+
+	#[test]
+	fn test_matcher_repeat_max() {
+		let matcher:TextMatcher = TextMatcher::repeat_max("xa");
+		assert_eq!(matcher.match_text("xaxaxaxaba"), Some(8));
+		assert_eq!(matcher.match_text("baba"), None);
+	}
 }
