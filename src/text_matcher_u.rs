@@ -1,71 +1,68 @@
 #[cfg(test)]
 mod tests {
-	use crate::TextMatcher;
+	use crate::{ TextMatcher, TextMatcherSource };
 
 
-
-	/* ATOM IMPLEMENTATION TESTS */
 	#[test]
-	fn test_text_matcher_atom_char() {
-		assert_eq!('x'.match_text("xaba"), Some(1)); // Partial match
-		assert_eq!('a'.match_text("xaba"), None); // Full mismatch
-		assert_eq!('x'.match_text("xxaba"), Some(1)); // Non-repeating match
+	fn test_matcher_creation() {
+
+		// Matchers should be able to be created from any source and tested without panicking.
+		assert_eq!(TextMatcher::new('x').match_text("xaba"), Some(1));
+		assert_eq!(TextMatcher::new("xaba").match_text("xaba"), Some(4));
+		assert_eq!(TextMatcher::new("xaba".to_string()).match_text("xaba"), Some(4));
+		assert_eq!(TextMatcher::new(|text:&str| if text == "xaba" { Some(3) } else { None }).match_text("xaba"), Some(3));
+		assert_eq!(TextMatcher::new(vec!["x", "aba", ""]).match_text("xaba"), Some(4));
+		assert_eq!(TextMatcher::new(('x', "aba", "")).match_text("xaba"), Some(4));
+		assert_eq!(TextMatcher::new('0').match_text("xaba"), None);
 	}
 
 	#[test]
-	fn test_text_matcher_atom_str() {
-		assert_eq!("x".match_text("xaba"), Some(1)); // Partial match
-		assert_eq!("xaba".match_text("xaba"), Some(4)); // Full match
-		assert_eq!("a".match_text("xaba"), None); // Full mismatch
-		assert_eq!("xxa".match_text("xxaba"), Some(3)); // Partial lengthy match
+	fn test_matcher_add() {
+		let matcher:TextMatcher = TextMatcher::new("xa") + 'b';
+		assert_eq!(matcher.match_text("xaba"), Some(3));
+
+		let matcher:TextMatcher = TextMatcher::new("xa") + 'b' + 'a';
+		assert_eq!(matcher.match_text("xaba"), Some(4));
+
+		let matcher:TextMatcher = TextMatcher::new("xa") + 'b' + 'a' + 's';
+		assert_eq!(matcher.match_text("xaba"), None);
 	}
 
 	#[test]
-	fn test_text_matcher_atom_string() {
-		assert_eq!("x".to_string().match_text("xaba"), Some(1)); // Partial match
-		assert_eq!("xaba".to_string().match_text("xaba"), Some(4)); // Full match
-		assert_eq!("a".to_string().match_text("xaba"), None); // Full mismatch
-		assert_eq!("xxa".to_string().match_text("xxaba"), Some(3)); // Partial lengthy match
+	fn test_matcher_mul() {
+		let matcher:TextMatcher = TextMatcher::new("xa");
+		assert_eq!(matcher.match_text("xaba"), Some(2));
+
+		let matcher:TextMatcher = TextMatcher::new("xa") * 2;
+		assert_eq!(matcher.match_text("xaxaba"), Some(4));
+
+		let matcher:TextMatcher = TextMatcher::new("xa") * 3;
+		assert_eq!(matcher.match_text("xaxaba"), None);
 	}
 
 	#[test]
-	fn test_text_matcher_atom_fn() {
-		assert_eq!((|text:&str| if text == "xaba" { Some(3) } else { None }).match_text("xaba"), Some(3));
-		assert_eq!((|text:&str| if text == "daba" { Some(3) } else { None }).match_text("xaba"), None);
-	}
-
-
-
-	/* LIST IMPLEMENTATION TESTS */
-
-	#[test]
-	fn test_text_matcher_list_array() {
-		assert_eq!(["x", "ab"].match_text("xaba"), Some(3)); // Partial match
-		assert_eq!(["x", "ab", "a"].match_text("xaba"), Some(4)); // Full match
-		assert_eq!(["a", "ab"].match_text("xaba"), None); // Full mismatch
-		assert_eq!(["x", "x", "ab"].match_text("xxaba"), Some(4)); // Partial lengthy match
-		assert_eq!(["x", "ad"].match_text("xaba"), None); // Partial mismatch
-		assert_eq!(["x", "ab", "a", ""].match_text("xaba"), Some(4)); // Full match with trailing empty
+	fn test_matcher_and() {
+		let matcher:TextMatcher = TextMatcher::new("xa") & 'b';
+		assert_eq!(matcher.match_text("xaba"), Some(3));
+		let matcher:TextMatcher = matcher & 'a';
+		assert_eq!(matcher.match_text("xaba"), Some(4));
+		let matcher:TextMatcher = matcher & 'a';
+		assert_eq!(matcher.match_text("xaba"), None);
 	}
 
 	#[test]
-	fn test_text_matcher_list_vec() {
-		assert_eq!(vec!["x", "ab"].match_text("xaba"), Some(3)); // Partial match
-		assert_eq!(vec!["x", "ab", "a"].match_text("xaba"), Some(4)); // Full match
-		assert_eq!(vec!["a", "ab"].match_text("xaba"), None); // Full mismatch
-		assert_eq!(vec!["x", "x", "ab"].match_text("xxaba"), Some(4)); // Partial lengthy match
-		assert_eq!(vec!["x", "ad"].match_text("xaba"), None); // Partial mismatch
-		assert_eq!(vec!["x", "ab", "a", ""].match_text("xaba"), Some(4)); // Full match with trailing empty
-	}
+	fn test_matcher_or() {
+		let matcher:TextMatcher = TextMatcher::new("xa") | 'b';
+		assert_eq!(matcher.match_text("xaba"), Some(2));
+		assert_eq!(matcher.match_text("baba"), Some(1));
 
-	#[test]
-	fn test_text_matcher_list_tuple() {
-		assert_eq!(('x', "ab").match_text("xaba"), Some(3)); // Partial match
-		assert_eq!(('x', "ab", 'a').match_text("xaba"), Some(4)); // Full match
-		assert_eq!(('a', "ab").match_text("xaba"), None); // Full mismatch
-		assert_eq!(('x', "xab").match_text("xxaba"), Some(4)); // Partial lengthy match
-		assert_eq!(('x', "ad").match_text("xaba"), None); // Partial mismatch
-		assert_eq!(('x', "ab", 'a', "").match_text("xaba"), Some(4)); // Full match with trailing empty
-		assert_eq!(('x', "ab", 'a', 'x', "ab", 'a', 'x', "ab", 'a', 'x', "ab", 'a').match_text("xabaxabaxabaxabaxaba"), Some(16)); // Full lengthy match
+		let matcher:TextMatcher = TextMatcher::new("xa") | "xaba";
+		assert_eq!(matcher.match_text("xaba"), Some(2));
+
+		let matcher:TextMatcher = TextMatcher::new("xa") | "daba";
+		assert_eq!(matcher.match_text("daba"), Some(4));
+
+		let matcher:TextMatcher = TextMatcher::new("xa") | "ba";
+		assert_eq!(matcher.match_text("haba"), None);
 	}
 }

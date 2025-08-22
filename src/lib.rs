@@ -1,7 +1,7 @@
 mod text_matcher;
 mod text_matcher_u;
-mod text_matcher_operators;
-mod text_matcher_operators_u;
+mod text_matcher_source;
+mod text_matcher_source_u;
 
 pub use text_matcher::*;
-pub use text_matcher_operators::*;
+pub use text_matcher_source::*;
