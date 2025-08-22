@@ -50,7 +50,7 @@ impl TextMatcher {
 	/* WHITE-SPACE MATCHER METHODS */
 
 	/// Create a matcher that matches only white-space. Matches maximum one character.
-	pub fn white_space() -> TextMatcher {
+	pub fn whitespace() -> TextMatcher {
 		TextMatcher::on_first_char(|char| char.is_whitespace())
 	}
 
@@ -60,7 +60,7 @@ impl TextMatcher {
 	}
 
 	/// Create a matcher that matches only non-linebreak whitespace. Matches maximum one character.
-	pub fn inline_white_space() ->  TextMatcher {
+	pub fn inline_whitespace() ->  TextMatcher {
 		TextMatcher::on_first_char(|char| char.is_whitespace() && !LINE_BREAK_CHARS.contains(&char))
 	}
 
