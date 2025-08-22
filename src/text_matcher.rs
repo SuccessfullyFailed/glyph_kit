@@ -186,9 +186,13 @@ impl Not for TextMatcher {
 
 	fn not(self) -> Self::Output {
 		TextMatcher::new(move |text:&str| {
-			match self.match_text(text) {
-				Some(_) => None,
-				None => Some(0)
+			if text.is_empty() {
+				None
+			} else { 
+				match self.match_text(text) {
+					Some(_) => None,
+					None => Some(1)
+				}
 			}
 		})
 	}
