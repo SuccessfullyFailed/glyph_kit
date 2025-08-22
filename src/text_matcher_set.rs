@@ -3,6 +3,15 @@ use std::ops::Index;
 
 
 
+#[derive(Clone, PartialEq, Debug)]
+pub struct MatchResult {
+	pub match_type:String,
+	pub match_length:usize,
+	pub match_contents:String
+}
+
+
+
 pub struct TextMatcherSet {
 	matchers:Vec<(String, TextMatcher)>
 }
@@ -40,14 +49,33 @@ impl TextMatcherSet {
 		self.matchers.iter().find(|(matcher_name, _)| matcher_name == name)
 	}
 
-	/// Try to match any of the matchers to the given text. Returns the name of the matcher and length of the match in case of a match.
-	pub fn match_text(&self, text:&str) -> Option<(&str, usize)> {
+	/// Try to match any of the matchers to the given text. Returns MatchResult in case of a match.
+	pub fn match_text(&self, text:&str) -> Option<MatchResult> {
 		for (matcher_name, matcher) in &self.matchers {
 			if let Some(match_length) = matcher.match_text(text) {
-				return Some((matcher_name, match_length));
+				return Some(
+					MatchResult {
+						match_type: matcher_name.to_string(),
+						match_length,
+						match_contents: text[..match_length].to_string()
+					}
+				);
 			}
 		}
 		None
+	}
+
+	/// Keep matching as much of the given text as possible. Returns a list of entries containing matcher name, .
+	pub fn multi_match_text(&self, text:&str) -> Vec<MatchResult> {
+		let mut cursor:usize = 0;
+		let mut remaining_text:&str = text;
+		let mut results:Vec<MatchResult> = Vec::new();
+		while let Some(match_result) = self.match_text(remaining_text) {
+			results.push(match_result.clone());
+			cursor += match_result.match_length;
+			remaining_text = if text.len() > cursor { &text[cursor..] } else { "" };
+		}
+		results
 	}
 }
 impl Index<&str> for TextMatcherSet {
