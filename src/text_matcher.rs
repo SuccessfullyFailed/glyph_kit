@@ -3,6 +3,10 @@ use crate::TextMatcherSource;
 
 
 
+const LINE_BREAK_CHARS:&[char] = &['\n', '\r'];
+
+
+
 pub struct TextMatcher(Box<dyn TextMatcherSource>);
 impl TextMatcher {
 
@@ -28,6 +32,35 @@ impl TextMatcher {
 				None
 			}
 		})
+	}
+
+	/// Create a matcher that checks something on the first character.
+	fn on_first_char<T:Fn(&char) -> bool + 'static>(compare_function:T) -> TextMatcher {
+		TextMatcher::new(move |text:&str| {
+			if !text.is_empty() {
+				if let Some(first_char) = text[..1].chars().next() {
+					if compare_function(&first_char) {
+						return Some(1);
+					}
+				}
+			}
+			None
+		})
+	}
+
+	/// Create a matcher that matches only white-space.
+	pub fn white_space() -> TextMatcher {
+		TextMatcher::on_first_char(|char| char.is_whitespace())
+	}
+
+	/// Create a matcher that matches only linebreaks.
+	pub fn linebreak() ->  TextMatcher {
+		TextMatcher::on_first_char(|char| LINE_BREAK_CHARS.contains(&char))
+	}
+
+	/// Create a matcher that matches only non-linebreak whitespace.
+	pub fn inline_white_space() ->  TextMatcher {
+		TextMatcher::on_first_char(|char| char.is_whitespace() && !LINE_BREAK_CHARS.contains(&char))
 	}
 }
 impl TextMatcherSource for TextMatcher {

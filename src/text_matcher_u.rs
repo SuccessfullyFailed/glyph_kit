@@ -82,4 +82,19 @@ mod tests {
 		assert_eq!(matcher.match_text("xaxaxaxaba"), Some(8));
 		assert_eq!(matcher.match_text("baba"), None);
 	}
+
+	#[test]
+	fn test_matcher_whitespace() {
+		assert_eq!(TextMatcher::white_space().match_text(" \nxaba"), Some(1));
+		assert_eq!(TextMatcher::white_space().match_text("\nxaba"), Some(1));
+		assert_eq!(TextMatcher::white_space().match_text("xaba"), None);
+		
+		assert_eq!(TextMatcher::linebreak().match_text(" \nxaba"), None);
+		assert_eq!(TextMatcher::linebreak().match_text("\nxaba"), Some(1));
+		assert_eq!(TextMatcher::linebreak().match_text("xaba"), None);
+		
+		assert_eq!(TextMatcher::inline_white_space().match_text(" \nxaba"), Some(1));
+		assert_eq!(TextMatcher::inline_white_space().match_text("\nxaba"), None);
+		assert_eq!(TextMatcher::inline_white_space().match_text("xaba"), None);
+	}
 }
