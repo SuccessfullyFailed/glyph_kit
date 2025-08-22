@@ -1,4 +1,4 @@
-use std::ops::{ Add, BitAnd, BitOr, Mul, Not };
+use std::{ rc::Rc, ops::{ Add, BitAnd, BitOr, Mul, Not } };
 use crate::TextMatcherSource;
 
 
@@ -7,12 +7,13 @@ const LINE_BREAK_CHARS:&[char] = &['\n', '\r'];
 
 
 
-pub struct TextMatcher(Box<dyn TextMatcherSource>);
+#[derive(Clone)]
+pub struct TextMatcher(Rc<dyn TextMatcherSource>);
 impl TextMatcher {
 
 	/// Create a new text-matcher from a source.
 	pub fn new<T:TextMatcherSource + 'static>(source:T) -> TextMatcher {
-		TextMatcher(Box::new(source))
+		TextMatcher(Rc::new(source))
 	}
 
 
