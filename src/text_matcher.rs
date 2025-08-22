@@ -26,7 +26,7 @@ impl TextMatcher {
 			let mut matched_any:bool = false;
 			let mut cursor:usize = 0;
 			let mut remaining_text:&str = text;
-			while let Some(match_length) = sub_matcher.match_text(remaining_text) {
+			while let Some(match_length) = sub_matcher.match_text_length(remaining_text) {
 				matched_any = true;
 				cursor += match_length;
 				remaining_text = if text.len() > cursor { &text[cursor..] } else { "" };
@@ -44,7 +44,7 @@ impl TextMatcher {
 		TextMatcher::new(move |text:&str| {
 			let mut cursor:usize = 0;
 			let mut remaining_text:&str = text;
-			while let Some(match_length) = sub_matcher.match_text(remaining_text) {
+			while let Some(match_length) = sub_matcher.match_text_length(remaining_text) {
 				cursor += match_length;
 				remaining_text = if text.len() > cursor { &text[cursor..] } else { "" };
 			}
@@ -55,7 +55,7 @@ impl TextMatcher {
 	/// Create a matcher that tries to match the given sub-matcher, but still returns Some(0) on mismatch.
 	pub fn optional<T:TextMatcherSource + 'static>(sub_matcher:T) -> TextMatcher {
 		TextMatcher::new(move |text:&str| {
-			Some(sub_matcher.match_text(text).unwrap_or(0))
+			Some(sub_matcher.match_text_length(text).unwrap_or(0))
 		})
 	}
 
@@ -123,8 +123,8 @@ impl TextMatcher {
 	}
 }
 impl TextMatcherSource for TextMatcher {
-	fn match_text(&self, text:&str) -> Option<usize> {
-		self.0.match_text(text)
+	fn match_text_length(&self, text:&str) -> Option<usize> {
+		self.0.match_text_length(text)
 	}
 }
 impl<T:TextMatcherSource + 'static> Add<T> for TextMatcher {
@@ -132,9 +132,9 @@ impl<T:TextMatcherSource + 'static> Add<T> for TextMatcher {
 
 	fn add(self, rhs:T) -> Self::Output {
 		TextMatcher::new(move |text:&str| {
-			if let Some(left_length) = self.match_text(text) {
+			if let Some(left_length) = self.match_text_length(text) {
 				let remaining_text:&str = if text.len() > left_length { &text[left_length..] } else { "" };
-				if let Some(right_length) = rhs.match_text(remaining_text) {
+				if let Some(right_length) = rhs.match_text_length(remaining_text) {
 					return Some(left_length + right_length);
 				}
 			}
@@ -150,7 +150,7 @@ impl Mul<usize> for TextMatcher {
 			let mut cursor:usize = 0;
 			for _ in 0..rhs {
 				let remaining_text:&str = if text.len() > cursor { &text[cursor..] } else { "" };
-				match self.match_text(remaining_text) {
+				match self.match_text_length(remaining_text) {
 					Some(match_length) => cursor += match_length,
 					None => return None
 				}
@@ -171,9 +171,9 @@ impl<T:TextMatcherSource + 'static> BitOr<T> for TextMatcher {
 
 	fn bitor(self, rhs:T) -> Self::Output {
 		TextMatcher::new(move |text:&str| {
-			if let Some(match_length) = self.match_text(text) {
+			if let Some(match_length) = self.match_text_length(text) {
 				Some(match_length)
-			} else if let Some(match_length) = rhs.match_text(text) {
+			} else if let Some(match_length) = rhs.match_text_length(text) {
 				Some(match_length)
 			} else {
 				None
@@ -189,7 +189,7 @@ impl Not for TextMatcher {
 			if text.is_empty() {
 				None
 			} else { 
-				match self.match_text(text) {
+				match self.match_text_length(text) {
 					Some(_) => None,
 					None => Some(1)
 				}

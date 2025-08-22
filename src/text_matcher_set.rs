@@ -1,19 +1,5 @@
-use crate::{ TextMatcher, TextMatcherSource };
-use std::{ fmt::{ Display, Formatter, Result }, ops::Index };
-
-
-
-#[derive(Clone, PartialEq, Debug)]
-pub struct TextMatchResult {
-	pub match_type:String,
-	pub match_length:usize,
-	pub match_contents:String
-}
-impl Display for TextMatchResult {
-	fn fmt(&self, f:&mut Formatter<'_>) -> Result {
-		write!(f, "{}:\n{}\n\n", self.match_type, self.match_contents.split('\n').map(|line| format!(">>\t{line}")).collect::<Vec<String>>().join("\n"))
-	}
-}
+use crate::{ TextMatchResult, TextMatcher, TextMatcherSource };
+use std::ops::Index;
 
 
 
@@ -57,14 +43,9 @@ impl TextMatcherSet {
 	/// Try to match any of the matchers to the given text. Returns MatchResult in case of a match.
 	pub fn match_text(&self, text:&str) -> Option<TextMatchResult> {
 		for (matcher_name, matcher) in &self.matchers {
-			if let Some(match_length) = matcher.match_text(text) {
-				return Some(
-					TextMatchResult {
-						match_type: matcher_name.to_string(),
-						match_length,
-						match_contents: text[..match_length].to_string()
-					}
-				);
+			if let Some(mut match_result) = matcher.match_text(text) {
+				match_result.match_type = matcher_name.to_string();
+				return Some(match_result);
 			}
 		}
 		None
