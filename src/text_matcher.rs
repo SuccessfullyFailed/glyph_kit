@@ -78,6 +78,18 @@ impl TextMatcher {
 		TextMatcher::repeat_max(TextMatcher::digit())
 	}
 
+	/// Create a matcher that matches signed integers. Matches as long as possible.
+	pub fn signed_integer() -> TextMatcher {
+		TextMatcher::optional("-") + TextMatcher::unsigned_integer()
+	}
+
+	/// Create a matcher that matches floating point numbers. Matches as long as possible.
+	pub fn float() -> TextMatcher {
+		TextMatcher::signed_integer() + TextMatcher::optional(TextMatcher::new(".") + TextMatcher::unsigned_integer())
+	}
+
+	
+
 
 
 	/* HELPER METHODS */

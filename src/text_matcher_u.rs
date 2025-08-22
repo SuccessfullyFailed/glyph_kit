@@ -159,4 +159,26 @@ mod tests {
 		assert_eq!(TextMatcher::unsigned_integer().match_text(" xaba"), None);
 		assert_eq!(TextMatcher::unsigned_integer().match_text(""), None);
 	}
+
+	#[test]
+	fn test_matcher_signed_integer() {
+		assert_eq!(TextMatcher::signed_integer().match_text("-19.0 xaba"), Some(3));
+		assert_eq!(TextMatcher::signed_integer().match_text("19.0 xaba"), Some(2));
+		assert_eq!(TextMatcher::signed_integer().match_text("9.0 xaba"), Some(1));
+		assert_eq!(TextMatcher::signed_integer().match_text(".0 xaba"), None);
+		assert_eq!(TextMatcher::signed_integer().match_text("0 xaba"), Some(1));
+		assert_eq!(TextMatcher::signed_integer().match_text(" xaba"), None);
+		assert_eq!(TextMatcher::signed_integer().match_text(""), None);
+	}
+
+	#[test]
+	fn test_matcher_signed_float() {
+		assert_eq!(TextMatcher::float().match_text("-19.0 xaba"), Some(5));
+		assert_eq!(TextMatcher::float().match_text("19.0 xaba"), Some(4));
+		assert_eq!(TextMatcher::float().match_text("9.0 xaba"), Some(3));
+		assert_eq!(TextMatcher::float().match_text(".0 xaba"), None);
+		assert_eq!(TextMatcher::float().match_text("0 xaba"), Some(1));
+		assert_eq!(TextMatcher::float().match_text(" xaba"), None);
+		assert_eq!(TextMatcher::float().match_text(""), None);
+	}
 }
