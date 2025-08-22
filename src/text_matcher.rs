@@ -38,6 +38,13 @@ impl TextMatcher {
 		})
 	}
 
+	/// Create a matcher that tries to match the given sub-matcher, but still returns Some(0) on mismatch.
+	pub fn optional<T:TextMatcherSource + 'static>(sub_matcher:T) -> TextMatcher {
+		TextMatcher::new(move |text:&str| {
+			Some(sub_matcher.match_text(text).unwrap_or(0))
+		})
+	}
+
 
 
 	/* WHITE-SPACE MATCHER METHODS */
