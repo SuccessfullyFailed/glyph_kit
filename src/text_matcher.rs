@@ -1,4 +1,4 @@
-use std::ops::{ Add, BitAnd, BitOr, Mul };
+use std::ops::{ Add, BitAnd, BitOr, Mul, Not };
 use crate::TextMatcherSource;
 
 
@@ -66,6 +66,18 @@ impl<T:TextMatcherSource + 'static> BitOr<T> for TextMatcher {
 				Some(match_length)
 			} else {
 				None
+			}
+		})
+	}
+}
+impl Not for TextMatcher {
+	type Output = TextMatcher;
+
+	fn not(self) -> Self::Output {
+		TextMatcher::new(move |text:&str| {
+			match self.match_text(text) {
+				Some(_) => None,
+				None => Some(0)
 			}
 		})
 	}

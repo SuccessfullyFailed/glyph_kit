@@ -65,4 +65,14 @@ mod tests {
 		let matcher:TextMatcher = TextMatcher::new("xa") | "ba";
 		assert_eq!(matcher.match_text("haba"), None);
 	}
+
+	#[test]
+	fn test_matcher_not() {
+		let matcher:TextMatcher = !TextMatcher::new("xa") + 'b';
+		assert_eq!(matcher.match_text("xaba"), None);
+		assert_eq!(matcher.match_text("baba"), Some(1));
+
+		let matcher:TextMatcher = !TextMatcher::new("xa") | "xaba";
+		assert_eq!(matcher.match_text("xaba"), Some(4));
+	}
 }
