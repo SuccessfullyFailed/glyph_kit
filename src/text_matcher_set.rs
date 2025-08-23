@@ -44,7 +44,7 @@ impl TextMatcherSet {
 	pub fn match_text(&self, text:&str) -> Option<TextMatchResult> {
 		for (matcher_name, matcher) in &self.matchers {
 			if let Some(mut match_result) = matcher.match_text(text) {
-				match_result.match_type = matcher_name.to_string();
+				match_result.type_name = matcher_name.to_string();
 				return Some(match_result);
 			}
 		}
@@ -52,19 +52,19 @@ impl TextMatcherSet {
 	}
 
 	/// Keep matching as much of the given text as possible. Returns a list of entries containing matcher name, .
-	pub fn multi_match_text(&self, text:&str) -> Vec<TextMatchResult> {
+	pub fn multi_match_text(&self, text:&str) -> TextMatchResult {
 		let mut cursor:usize = 0;
 		let mut remaining_text:&str = text;
 		let mut results:Vec<TextMatchResult> = Vec::new();
 		while let Some(match_result) = self.match_text(remaining_text) {
 			results.push(match_result.clone());
-			cursor += match_result.match_length;
-			if match_result.match_length == 0 {
-				panic!("Matched a {} with length 0 in multi_match_text. As this will increase the cursor, this would repeat indefinitely. Aborting rest of parsing.", match_result.match_type);
+			cursor += match_result.length;
+			if match_result.length == 0 {
+				panic!("Matched a {} with length 0 in multi_match_text. As this will increase the cursor, this would repeat indefinitely. Aborting rest of parsing.", match_result.type_name);
 			}
 			remaining_text = if text.len() > cursor { &text[cursor..] } else { "" };
 		}
-		results
+		TextMatchResult::new_with_sub_matches(cursor, text, results)
 	}
 }
 impl Index<&str> for TextMatcherSet {

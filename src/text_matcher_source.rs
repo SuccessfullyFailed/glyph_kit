@@ -4,44 +4,39 @@ use crate::TextMatchResult;
 
 pub trait TextMatcherSource {
 
-	/// Try to match the given text. Returns the length of the match in case of a match.
-	fn match_text_length(&self, text:&str) -> Option<usize>;
-
 	/// Try to match the given text. Returns a TextMatchResult in case of a match.
-	fn match_text(&self, text:&str) -> Option<TextMatchResult> {
-		self.match_text_length(text).map(|match_length| TextMatchResult::new(match_length, text))
-	}
+	fn match_text(&self, text:&str) -> Option<TextMatchResult>;
 }
 
 
 
 /* ATOM IMPLEMENTATIONS */
 impl TextMatcherSource for char {
-	fn match_text_length(&self, text:&str) -> Option<usize> {
+	fn match_text(&self, text:&str) -> Option<TextMatchResult> {
 		if let Some(first_char) = text.chars().next() {
 			if first_char == *self {
-				return Some(1);
+				return Some(TextMatchResult::new(1, text));
 			}
 		}
 		None
 	}
 }
 impl TextMatcherSource for &str {
-	fn match_text_length(&self, text:&str) -> Option<usize> {
+	fn match_text(&self, text:&str) -> Option<TextMatchResult> {
 		if text.starts_with(self) {
-			Some(self.len())
+			Some(TextMatchResult::new(self.len(), text))
 		} else {
 			None
 		}
 	}
 }
 impl TextMatcherSource for String {
-	fn match_text_length(&self, text:&str) -> Option<usize> {
-		self.as_str().match_text_length(text)
+	fn match_text(&self, text:&str) -> Option<TextMatchResult> {
+		self.as_str().match_text(text)
 	}
 }
-impl<T> TextMatcherSource for T where T:Fn(&str) -> Option<usize> {
-	fn match_text_length(&self, text:&str) -> Option<usize> {
+impl<T> TextMatcherSource for T where T:Fn(&str) -> Option<TextMatchResult> {
+	fn match_text(&self, text:&str) -> Option<TextMatchResult> {
 		self(text)
 	}
 }
@@ -49,23 +44,25 @@ impl<T> TextMatcherSource for T where T:Fn(&str) -> Option<usize> {
 
 /* LIST IMPLEMENTATIONS */
 impl<T> TextMatcherSource for [T] where T:TextMatcherSource {
-	fn match_text_length(&self, text:&str) -> Option<usize> {
+	fn match_text(&self, text:&str) -> Option<TextMatchResult> {
 		let mut cursor:usize = 0;
+		let mut sub_matches:Vec<TextMatchResult> = Vec::new();
 		let text_len:usize = text.len();
 		for matcher in self {
 			let text_remainder:&str = if text_len > cursor { &text[cursor..] } else { "" }; // Next matcher could match empty.
-			if let Some(match_length) = matcher.match_text_length(&text_remainder) {
-				cursor += match_length;
+			if let Some(match_result) = matcher.match_text(&text_remainder) {
+				cursor += match_result.length;
+				sub_matches.push(match_result);
 			} else {
 				return None;
 			};
 		}
-		Some(cursor)
+		Some(TextMatchResult::new_with_sub_matches(cursor, text, sub_matches))
 	}
 }
 impl<T> TextMatcherSource for Vec<T> where T:TextMatcherSource {
-	fn match_text_length(&self, text:&str) -> Option<usize> {
-		self[..].match_text_length(text)
+	fn match_text(&self, text:&str) -> Option<TextMatchResult> {
+		self[..].match_text(text)
 	}
 }
 
@@ -75,18 +72,20 @@ impl<T> TextMatcherSource for Vec<T> where T:TextMatcherSource {
 macro_rules! tuple_matcher {
 	($($name:ident $idx:tt), +) => {
 		impl<$($name:TextMatcherSource),+> TextMatcherSource for ($($name,)+) {
-			fn match_text_length(&self, text:&str) -> Option<usize> {
+			fn match_text(&self, text:&str) -> Option<TextMatchResult> {
 				let mut cursor = 0;
+				let mut sub_matches:Vec<TextMatchResult> = Vec::new();
 				let text_len:usize = text.len();
 				$(
 					let text_remainder:&str = if text_len > cursor { &text[cursor..] } else { "" }; // Next matcher could match empty.
-					if let Some(len) = self.$idx.match_text_length(&text_remainder) {
-						cursor += len;
+					if let Some(match_result) = self.$idx.match_text(&text_remainder) {
+						cursor += match_result.length;
+						sub_matches.push(match_result);
 					} else {
 						return None;
 					}
 				)+
-				Some(cursor)
+				Some(TextMatchResult::new(cursor, text))
 			}
 		}
 	};

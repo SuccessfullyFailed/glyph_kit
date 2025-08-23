@@ -3,6 +3,7 @@ pub mod languages;
 mod text_matcher_set;
 mod text_matcher_set_u;
 mod text_match_result;
+mod text_match_result_u;
 mod text_matcher;
 mod text_matcher_u;
 mod text_matcher_source;

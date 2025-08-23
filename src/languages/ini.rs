@@ -18,11 +18,10 @@ impl IniParser {
 					"]"
 				),
 				(
-					"value",
-					!TextMatcher::whitespace() + 
-					TextMatcher::repeat_max(!TextMatcher::new("=")) +
+					"variable",
+					TextMatcher::named("name", !TextMatcher::whitespace() + TextMatcher::repeat_max(!TextMatcher::new("="))) +
 					TextMatcher::new("=") +
-					TextMatcher::optional_repeat_max(!TextMatcher::linebreak())
+					TextMatcher::named("value", TextMatcher::optional_repeat_max(!TextMatcher::linebreak()))
 				),
 				(
 					"whitespace",
@@ -33,7 +32,7 @@ impl IniParser {
 	}
 
 	/// Parse some text.
-	pub fn parse(&self, text:&str) -> Vec<TextMatchResult> {
+	pub fn parse(&self, text:&str) -> TextMatchResult {
 		self.matcher_set.multi_match_text(text)
 	}
 }
