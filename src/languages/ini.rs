@@ -12,16 +12,20 @@ impl IniParser {
 		IniParser {
 			matcher_set: TextMatcherSet::new().with_matchers(vec![
 				(
-					"category",
+					"group",
 					TextMatcher::new("[") +
-					TextMatcher::optional_repeat_max(!TextMatcher::new("]")) +
-					"]"
-				),
-				(
-					"variable",
-					TextMatcher::named("name", !TextMatcher::whitespace() + TextMatcher::repeat_max(!TextMatcher::new("="))) +
-					TextMatcher::new("=") +
-					TextMatcher::named("value", TextMatcher::optional_repeat_max(!TextMatcher::linebreak()))
+					TextMatcher::named("category_name", TextMatcher::optional_repeat_max(!TextMatcher::new("]"))) +
+					"]" +
+
+					TextMatcher::optional_repeat_max(
+						TextMatcher::named("whitespace", TextMatcher::optional_repeat_max(TextMatcher::whitespace())) +
+
+						TextMatcher::named("variable_row", 
+							TextMatcher::named("name", !(TextMatcher::whitespace() | "[") + TextMatcher::repeat_max(!TextMatcher::new("="))) +
+							TextMatcher::new("=") +
+							TextMatcher::named("value", TextMatcher::optional_repeat_max(!TextMatcher::linebreak()))
+						)
+					)
 				),
 				(
 					"whitespace",
