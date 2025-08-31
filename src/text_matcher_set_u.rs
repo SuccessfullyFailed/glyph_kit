@@ -40,4 +40,28 @@ mod tests {
 			]
 		);
 	}
+
+	#[test]
+	fn test_matcher_set_find_match() {
+		let set:TextMatcherSet = TextMatcherSet::new().with_matchers(vec![("a", "a")]);
+
+		assert_eq!(
+			set.find_match("ooabaxa").unwrap(),
+			(2, TextMatchResult { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() })
+		);
+	}
+
+	#[test]
+	fn test_matcher_set_find_matches() {
+		let set:TextMatcherSet = TextMatcherSet::new().with_matchers(vec![("a", "a")]);
+
+		assert_eq!(
+			set.find_matches("ooabaxa"),
+			vec![
+				(2, TextMatchResult { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() }),
+				(4, TextMatchResult { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() }),
+				(6, TextMatchResult { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() }),
+			]
+		);
+	}
 }

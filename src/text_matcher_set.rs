@@ -66,6 +66,32 @@ impl TextMatcherSet {
 		}
 		TextMatchResult::new_with_sub_matches(cursor, text, results)
 	}
+
+	/// Find any match anywhere in the given text. Returns the start index where it was found and MatchResult in case of a match.
+	pub fn find_match(&self, text:&str) -> Option<(usize, TextMatchResult)> {
+		for cursor in 0..text.len() {
+			if let Some(match_result) = self.match_text(&text[cursor..]) {
+				return Some((cursor, match_result));
+			}
+		}
+		None
+	}
+
+	/// Find all possible matches anywhere in the given text. Returns the start index where it was found and MatchResult in case of a match.
+	pub fn find_matches(&self, text:&str) -> Vec<(usize, TextMatchResult)> {
+		let mut results:Vec<(usize, TextMatchResult)> = Vec::new();
+		let text_end:usize = text.len();
+		let mut cursor:usize = 0;
+		while cursor < text_end {
+			if let Some(match_result) = self.match_text(&text[cursor..]) {
+				results.push((cursor, match_result.clone()));
+				cursor += match_result.length;
+			} else {
+				cursor += 1;
+			}
+		}
+		results
+	}
 }
 impl Index<&str> for TextMatcherSet {
 	type Output = (String, TextMatcher);
