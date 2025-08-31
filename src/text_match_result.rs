@@ -51,6 +51,32 @@ impl TextMatchResult {
 
 
 
+	/* USAGE METHODS */
+
+	/// Execute an action on this and all sub-results.
+	pub fn execute_recursive<T:Fn(&TextMatchResult) + 'static>(&self, action:T) {
+		self._execute_recursive(&action);
+	}
+	pub fn _execute_recursive(&self, action:&dyn Fn(&TextMatchResult)) {
+		action(self);
+		for sub_match in &self.sub_matches {
+			sub_match._execute_recursive(action);
+		}
+	}
+
+	/// Execute an action on this and all sub-results mutable.
+	pub fn execute_recursive_mut<T:Fn(&mut TextMatchResult) + 'static>(&mut self, action:T) {
+		self._execute_recursive_mut(&action);
+	}
+	pub fn _execute_recursive_mut(&mut self, action:&dyn Fn(&mut TextMatchResult)) {
+		action(self);
+		for sub_match in &mut self.sub_matches {
+			sub_match._execute_recursive_mut(action);
+		}
+	}
+
+
+
 	/* CHILD METHODS */
 
 	/// Combine sub-matches.

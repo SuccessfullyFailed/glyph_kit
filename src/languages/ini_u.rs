@@ -6,8 +6,8 @@ mod tests {
 
 	#[test]
 	fn test_ini() {
-		const INI_CODE:&str = "[]\nempty data=x\n\n[user]\nname=bob\nage=32\njob=soap tester\n\n[test results]\ntest1=full failure\ntest2=partial failure\ntest3=success";
-		let parser:IniParser = IniParser::new();
+		const INI_CODE:&str = "[]\nempty data=x\n\n[user]\nname=bob\nage=\t32\njob=soap tester\n\n[test results]\ntest1=full failure\ntest2=partial failure\ntest3=success";
+		let parser:IniParser = IniParser::new().with_value_formatter(&|value| value.trim().to_string());
 		let parse_result:TextMatchResult = parser.parse(INI_CODE);
 
 		println!("{}", parse_result.type_name_tree());
@@ -18,7 +18,7 @@ mod tests {
 			REMOVE_WHITESPACE_AND_GET_TYPE_AND_CONTENTS(&parse_result.sub_matches),
 			vec![
 				("group", "[]\nempty data=x"),
-				("group", "[user]\nname=bob\nage=32\njob=soap tester"),
+				("group", "[user]\nname=bob\nage=\t32\njob=soap tester"),
 				("group", "[test results]\ntest1=full failure\ntest2=partial failure\ntest3=success")
 			]
 		);
@@ -36,7 +36,7 @@ mod tests {
 				("", "["),
 				("category_name", "user"),
 				("variable_row", "name=bob"),
-				("variable_row", "age=32"),
+				("variable_row", "age=\t32"),
 				("variable_row", "job=soap tester")
 			]
 		);
