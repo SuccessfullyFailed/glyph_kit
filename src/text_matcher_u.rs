@@ -194,4 +194,44 @@ mod tests {
 		assert_eq!(MatchExpr::float().match_text(" xaba"), None);
 		assert_eq!(MatchExpr::float().match_text(""), None);
 	}
+
+
+
+	/* WORD-LIKE MATCH-EXPRESSION MATCHER TEST */
+	
+	#[test]
+	fn test_matcher_alphabetic() {
+		assert_eq!(MatchExpr::alphabetic().match_text(" \nzAbA"), None);
+		assert_eq!(MatchExpr::alphabetic().match_text("\nzAbA"), None);
+		assert_eq!(MatchExpr::alphabetic().match_text("zAbA").unwrap().length, 1);
+		assert_eq!(MatchExpr::alphabetic().match_text("AbA").unwrap().length, 1);
+		assert_eq!(MatchExpr::alphabetic().match_text(""), None);
+	}
+	
+	#[test]
+	fn test_matcher_lowercase_alphabetic() {
+		assert_eq!(MatchExpr::lowercase_alphabetic().match_text(" \nzAbA"), None);
+		assert_eq!(MatchExpr::lowercase_alphabetic().match_text("\nzAbA"), None);
+		assert_eq!(MatchExpr::lowercase_alphabetic().match_text("zAbA").unwrap().length, 1);
+		assert_eq!(MatchExpr::lowercase_alphabetic().match_text("AbA"), None);
+		assert_eq!(MatchExpr::lowercase_alphabetic().match_text(""), None);
+	}
+	
+	#[test]
+	fn test_matcher_uppercase_alphabetic() {
+		assert_eq!(MatchExpr::uppercase_alphabetic().match_text(" \nzAbA"), None);
+		assert_eq!(MatchExpr::uppercase_alphabetic().match_text("\nzAbA"), None);
+		assert_eq!(MatchExpr::uppercase_alphabetic().match_text("zAbA"), None);
+		assert_eq!(MatchExpr::uppercase_alphabetic().match_text("AbA").unwrap().length, 1);
+		assert_eq!(MatchExpr::uppercase_alphabetic().match_text(""), None);
+	}
+	
+	#[test]
+	fn test_matcher_word() {
+		assert_eq!(MatchExpr::word().match_text(" \nzAbA"), None);
+		assert_eq!(MatchExpr::word().match_text("\nzAbA"), None);
+		assert_eq!(MatchExpr::word().match_text("zAbA").unwrap().length, 4);
+		assert_eq!(MatchExpr::word().match_text("AbA").unwrap().length, 3);
+		assert_eq!(MatchExpr::word().match_text(""), None);
+	}
 }

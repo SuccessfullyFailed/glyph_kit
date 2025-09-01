@@ -106,7 +106,7 @@ impl MatchExpr {
 
 	/// Create a match-expression that matches only digits. Matches maximum one character.
 	pub fn digit() -> MatchExpr {
-		MatchExpr::on_first_char(|char| *char >= '0' && *char <= '9')
+		MatchExpr::on_first_char(|char| char >= '0' && char <= '9')
 	}
 
 	/// Create a match-expression that matches unsigned integers. Matches as long as possible.
@@ -124,6 +124,30 @@ impl MatchExpr {
 		MatchExpr::signed_integer() + MatchExpr::optional(MatchExpr::new(".") + MatchExpr::unsigned_integer())
 	}
 
+
+
+	/* WORD-LIKE MATCH-EXPRESSION METHODS */
+
+	/// Create a match expression that only matches A-z. Matches maximum one character.
+	pub fn alphabetic() -> MatchExpr {
+		MatchExpr::on_first_char(|char| (char >= 'A' && char <= 'z'))
+	}
+
+	/// Create a match expression that only matches a-z. Matches maximum one character.
+	pub fn lowercase_alphabetic() -> MatchExpr {
+		MatchExpr::on_first_char(|char| (char >= 'a' && char <= 'z'))
+	}
+
+	/// Create a match expression that only matches A-Z. Matches maximum one character.
+	pub fn uppercase_alphabetic() -> MatchExpr {
+		MatchExpr::on_first_char(|char| (char >= 'A' && char <= 'Z'))
+	}
+
+	/// Create a match expression that matches one word that exists of only A-z. Matches as much as possible.
+	pub fn word() -> MatchExpr {
+		MatchExpr::repeat_max(MatchExpr::alphabetic())
+	}
+
 	
 
 
@@ -131,11 +155,11 @@ impl MatchExpr {
 	/* HELPER METHODS */
 	
 	/// Create a match-expression that checks something on the first character.
-	fn on_first_char<T:Fn(&char) -> bool + 'static>(compare_function:T) -> MatchExpr {
+	fn on_first_char<T:Fn(char) -> bool + 'static>(compare_function:T) -> MatchExpr {
 		MatchExpr::new(move |text:&str| {
 			if !text.is_empty() {
 				if let Some(first_char) = text[..1].chars().next() {
-					if compare_function(&first_char) {
+					if compare_function(first_char) {
 						return Some(MatchHit::new(1, text));
 					}
 				}
