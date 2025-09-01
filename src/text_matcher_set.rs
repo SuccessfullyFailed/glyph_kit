@@ -1,30 +1,30 @@
-use crate::{ TextMatchResult, TextMatcher, TextMatcherSource };
+use crate::{ MatchHit, MatchExpr, TextPredicate };
 use std::ops::Index;
 
 
 
-pub struct TextMatcherSet {
-	matchers:Vec<(String, TextMatcher)>
+pub struct MatcherRegistry {
+	matchers:Vec<(String, MatchExpr)>
 }
-impl TextMatcherSet {
+impl MatcherRegistry {
 
 	/* CONSTRUCTOR METHODS */
 
-	/// Create a new matcher set.
-	pub fn new() -> TextMatcherSet {
-		TextMatcherSet {
+	/// Create a new registry.
+	pub fn new() -> MatcherRegistry {
+		MatcherRegistry {
 			matchers: Vec::new()
 		}
 	}
 
 	/// Return self with an additional matcher to the set.
-	pub fn with_matcher<T:TextMatcherSource + 'static>(mut self, name:&str, matcher_source:T) -> Self {
-		self.matchers.push((name.to_string(), TextMatcher::new(matcher_source)));
+	pub fn with_matcher<T:TextPredicate + 'static>(mut self, name:&str, matcher_source:T) -> Self {
+		self.matchers.push((name.to_string(), MatchExpr::new(matcher_source)));
 		self
 	}
 
 	/// Return self with multiple additional matchers to the set.
-	pub fn with_matchers<T:TextMatcherSource + 'static>(mut self, sources:Vec<(&str, T)>) -> Self {
+	pub fn with_matchers<T:TextPredicate + 'static>(mut self, sources:Vec<(&str, T)>) -> Self {
 		for (name, matcher_source) in sources {
 			self = self.with_matcher(name, matcher_source)
 		}
@@ -35,13 +35,13 @@ impl TextMatcherSet {
 
 	/* USAGE METHODS */
 
-	/// Get a matcher by name.
-	pub fn matcher_by_name(&self, name:&str) -> Option<&(String, TextMatcher)> {
+	/// Get a match-expression by name.
+	pub fn matcher_by_name(&self, name:&str) -> Option<&(String, MatchExpr)> {
 		self.matchers.iter().find(|(matcher_name, _)| matcher_name == name)
 	}
 
-	/// Try to match any of the matchers to the given text. Returns MatchResult in case of a match.
-	pub fn match_text(&self, text:&str) -> Option<TextMatchResult> {
+	/// Try to match any of the match-expressions to the given text. Returns MatchResult in case of a match.
+	pub fn match_text(&self, text:&str) -> Option<MatchHit> {
 		for (matcher_name, matcher) in &self.matchers {
 			if let Some(mut match_result) = matcher.match_text(text) {
 				match_result.type_name = matcher_name.to_string();
@@ -51,11 +51,11 @@ impl TextMatcherSet {
 		None
 	}
 
-	/// Keep matching as much of the given text as possible. Returns a list of entries containing matcher name, .
-	pub fn multi_match_text(&self, text:&str) -> TextMatchResult {
+	/// Keep matching as much of the given text as possible. Returns a list of MatchResults.
+	pub fn multi_match_text(&self, text:&str) -> MatchHit {
 		let mut cursor:usize = 0;
 		let mut remaining_text:&str = text;
-		let mut results:Vec<TextMatchResult> = Vec::new();
+		let mut results:Vec<MatchHit> = Vec::new();
 		while let Some(match_result) = self.match_text(remaining_text) {
 			results.push(match_result.clone());
 			cursor += match_result.length;
@@ -64,11 +64,11 @@ impl TextMatcherSet {
 			}
 			remaining_text = if text.len() > cursor { &text[cursor..] } else { "" };
 		}
-		TextMatchResult::new_with_sub_matches(cursor, text, results)
+		MatchHit::new_with_sub_matches(cursor, text, results)
 	}
 
 	/// Find any match anywhere in the given text. Returns the start index where it was found and MatchResult in case of a match.
-	pub fn find_match(&self, text:&str) -> Option<(usize, TextMatchResult)> {
+	pub fn find_match(&self, text:&str) -> Option<(usize, MatchHit)> {
 		for cursor in 0..text.len() {
 			if let Some(match_result) = self.match_text(&text[cursor..]) {
 				return Some((cursor, match_result));
@@ -78,8 +78,8 @@ impl TextMatcherSet {
 	}
 
 	/// Find all possible matches anywhere in the given text. Returns the start index where it was found and MatchResult in case of a match.
-	pub fn find_matches(&self, text:&str) -> Vec<(usize, TextMatchResult)> {
-		let mut results:Vec<(usize, TextMatchResult)> = Vec::new();
+	pub fn find_matches(&self, text:&str) -> Vec<(usize, MatchHit)> {
+		let mut results:Vec<(usize, MatchHit)> = Vec::new();
 		let text_end:usize = text.len();
 		let mut cursor:usize = 0;
 		while cursor < text_end {
@@ -93,8 +93,8 @@ impl TextMatcherSet {
 		results
 	}
 }
-impl Index<&str> for TextMatcherSet {
-	type Output = (String, TextMatcher);
+impl Index<&str> for MatcherRegistry {
+	type Output = (String, MatchExpr);
 
 	fn index(&self, index:&str) -> &Self::Output {
 		self.matcher_by_name(index).unwrap()

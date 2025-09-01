@@ -3,19 +3,19 @@ use std::fmt::{ Display, Formatter, Result };
 
 
 #[derive(Clone, PartialEq, Debug)]
-pub struct TextMatchResult {
+pub struct MatchHit {
 	pub type_name:String,
 	pub length:usize,
 	pub contents:String,
-	pub sub_matches:Vec<TextMatchResult>
+	pub sub_matches:Vec<MatchHit>
 }
-impl TextMatchResult {
+impl MatchHit {
 
 	/* CONSTRUCTOR METHODS */
 
 	/// Create a new result.
-	pub fn new(match_length:usize, source_text:&str) -> TextMatchResult {
-		TextMatchResult {
+	pub fn new(match_length:usize, source_text:&str) -> MatchHit {
+		MatchHit {
 			type_name: String::new(),
 			length: match_length,
 			contents: source_text[..match_length].to_string(),
@@ -24,8 +24,8 @@ impl TextMatchResult {
 	}
 
 	/// Create a new result.
-	pub fn new_with_sub_matches(match_length:usize, source_text:&str, sub_matches:Vec<TextMatchResult>) -> TextMatchResult {
-		let mut result:TextMatchResult = TextMatchResult::new(match_length, source_text);
+	pub fn new_with_sub_matches(match_length:usize, source_text:&str, sub_matches:Vec<MatchHit>) -> MatchHit {
+		let mut result:MatchHit = MatchHit::new(match_length, source_text);
 		result.sub_matches = sub_matches;
 		result.combine_sub_matches();
 		if result.sub_matches.len() == 1 {
@@ -35,15 +35,15 @@ impl TextMatchResult {
 	}
 
 	/// Create a new result with a name.
-	pub fn named(name:&str, match_length:usize, source_text:&str) -> TextMatchResult {
-		let mut result:TextMatchResult = TextMatchResult::new(match_length, source_text);
+	pub fn named(name:&str, match_length:usize, source_text:&str) -> MatchHit {
+		let mut result:MatchHit = MatchHit::new(match_length, source_text);
 		result.type_name = name.to_string();
 		result
 	}
 
 	/// Create a new result.
-	pub fn named_with_sub_matches(name:&str, match_length:usize, source_text:&str, sub_matches:Vec<TextMatchResult>) -> TextMatchResult {
-		let mut result:TextMatchResult = TextMatchResult::named(name, match_length, source_text);
+	pub fn named_with_sub_matches(name:&str, match_length:usize, source_text:&str, sub_matches:Vec<MatchHit>) -> MatchHit {
+		let mut result:MatchHit = MatchHit::named(name, match_length, source_text);
 		result.sub_matches = sub_matches;
 		result.combine_sub_matches();
 		result
@@ -54,10 +54,10 @@ impl TextMatchResult {
 	/* USAGE METHODS */
 
 	/// Execute an action on this and all sub-results.
-	pub fn execute_recursive<T:Fn(&TextMatchResult) + 'static>(&self, action:T) {
+	pub fn execute_recursive<T:Fn(&MatchHit) + 'static>(&self, action:T) {
 		self._execute_recursive(&action);
 	}
-	pub fn _execute_recursive(&self, action:&dyn Fn(&TextMatchResult)) {
+	pub fn _execute_recursive(&self, action:&dyn Fn(&MatchHit)) {
 		action(self);
 		for sub_match in &self.sub_matches {
 			sub_match._execute_recursive(action);
@@ -65,10 +65,10 @@ impl TextMatchResult {
 	}
 
 	/// Execute an action on this and all sub-results mutable.
-	pub fn execute_recursive_mut<T:Fn(&mut TextMatchResult) + 'static>(&mut self, action:T) {
+	pub fn execute_recursive_mut<T:Fn(&mut MatchHit) + 'static>(&mut self, action:T) {
 		self._execute_recursive_mut(&action);
 	}
-	pub fn _execute_recursive_mut(&mut self, action:&dyn Fn(&mut TextMatchResult)) {
+	pub fn _execute_recursive_mut(&mut self, action:&dyn Fn(&mut MatchHit)) {
 		action(self);
 		for sub_match in &mut self.sub_matches {
 			sub_match._execute_recursive_mut(action);
@@ -85,7 +85,7 @@ impl TextMatchResult {
 		let mut right_index:usize = 1;
 		while right_index < self.sub_matches.len() {
 			if self.sub_matches[left_index].type_name.is_empty() && self.sub_matches[right_index].type_name.is_empty() {
-				let right:TextMatchResult = self.sub_matches.remove(right_index);
+				let right:MatchHit = self.sub_matches.remove(right_index);
 				self.sub_matches[left_index].length += right.length;
 				self.sub_matches[left_index].contents += &right.contents;
 				self.sub_matches[left_index].sub_matches.extend(right.sub_matches);
@@ -114,10 +114,10 @@ impl TextMatchResult {
 	}
 
 	/// Find a specific child by filter.
-	pub fn find_child<T:Fn(&TextMatchResult) -> bool>(&self, filter:T) -> Option<&TextMatchResult> {
+	pub fn find_child<T:Fn(&MatchHit) -> bool>(&self, filter:T) -> Option<&MatchHit> {
 		self._find_child(&filter)
 	}
-	pub fn _find_child(&self, filter:&dyn Fn(&TextMatchResult) -> bool) -> Option<&TextMatchResult> {
+	pub fn _find_child(&self, filter:&dyn Fn(&MatchHit) -> bool) -> Option<&MatchHit> {
 		if filter(self) {
 			return Some(self);
 		}
@@ -130,7 +130,7 @@ impl TextMatchResult {
 	}
 
 	/// Find a specific child by a path of type names.
-	pub fn find_child_by_type_path(&self, type_path:&[&str]) -> Option<&TextMatchResult> {
+	pub fn find_child_by_type_path(&self, type_path:&[&str]) -> Option<&MatchHit> {
 		if type_path.is_empty() {
 			return None;
 		}
@@ -152,7 +152,7 @@ impl TextMatchResult {
 		None
 	}
 }
-impl Display for TextMatchResult {
+impl Display for MatchHit {
 	fn fmt(&self, f:&mut Formatter<'_>) -> Result {
 		write!(f, "{}:\n{}\n\n", self.type_name, self.contents.split('\n').map(|line| format!(">>\t{line}")).collect::<Vec<String>>().join("\n"))
 	}

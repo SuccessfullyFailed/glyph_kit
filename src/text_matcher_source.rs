@@ -1,52 +1,52 @@
-use crate::TextMatchResult;
+use crate::MatchHit;
 
 
 
-pub trait TextMatcherSource {
+pub trait TextPredicate {
 
-	/// Try to match the given text. Returns a TextMatchResult in case of a match.
-	fn match_text(&self, text:&str) -> Option<TextMatchResult>;
+	/// Try to match the given text. Returns a MatchHit in case of a match.
+	fn match_text(&self, text:&str) -> Option<MatchHit>;
 }
 
 
 
 /* ATOM IMPLEMENTATIONS */
-impl TextMatcherSource for char {
-	fn match_text(&self, text:&str) -> Option<TextMatchResult> {
+impl TextPredicate for char {
+	fn match_text(&self, text:&str) -> Option<MatchHit> {
 		if let Some(first_char) = text.chars().next() {
 			if first_char == *self {
-				return Some(TextMatchResult::new(1, text));
+				return Some(MatchHit::new(1, text));
 			}
 		}
 		None
 	}
 }
-impl TextMatcherSource for &str {
-	fn match_text(&self, text:&str) -> Option<TextMatchResult> {
+impl TextPredicate for &str {
+	fn match_text(&self, text:&str) -> Option<MatchHit> {
 		if text.starts_with(self) {
-			Some(TextMatchResult::new(self.len(), text))
+			Some(MatchHit::new(self.len(), text))
 		} else {
 			None
 		}
 	}
 }
-impl TextMatcherSource for String {
-	fn match_text(&self, text:&str) -> Option<TextMatchResult> {
+impl TextPredicate for String {
+	fn match_text(&self, text:&str) -> Option<MatchHit> {
 		self.as_str().match_text(text)
 	}
 }
-impl<T> TextMatcherSource for T where T:Fn(&str) -> Option<TextMatchResult> {
-	fn match_text(&self, text:&str) -> Option<TextMatchResult> {
+impl<T> TextPredicate for T where T:Fn(&str) -> Option<MatchHit> {
+	fn match_text(&self, text:&str) -> Option<MatchHit> {
 		self(text)
 	}
 }
 
 
 /* LIST IMPLEMENTATIONS */
-impl<T> TextMatcherSource for [T] where T:TextMatcherSource {
-	fn match_text(&self, text:&str) -> Option<TextMatchResult> {
+impl<T> TextPredicate for [T] where T:TextPredicate {
+	fn match_text(&self, text:&str) -> Option<MatchHit> {
 		let mut cursor:usize = 0;
-		let mut sub_matches:Vec<TextMatchResult> = Vec::new();
+		let mut sub_matches:Vec<MatchHit> = Vec::new();
 		let text_len:usize = text.len();
 		for matcher in self {
 			let text_remainder:&str = if text_len > cursor { &text[cursor..] } else { "" }; // Next matcher could match empty.
@@ -57,11 +57,11 @@ impl<T> TextMatcherSource for [T] where T:TextMatcherSource {
 				return None;
 			};
 		}
-		Some(TextMatchResult::new_with_sub_matches(cursor, text, sub_matches))
+		Some(MatchHit::new_with_sub_matches(cursor, text, sub_matches))
 	}
 }
-impl<T> TextMatcherSource for Vec<T> where T:TextMatcherSource {
-	fn match_text(&self, text:&str) -> Option<TextMatchResult> {
+impl<T> TextPredicate for Vec<T> where T:TextPredicate {
+	fn match_text(&self, text:&str) -> Option<MatchHit> {
 		self[..].match_text(text)
 	}
 }
@@ -71,10 +71,10 @@ impl<T> TextMatcherSource for Vec<T> where T:TextMatcherSource {
 /* TUPLE IMPLEMENTATION */
 macro_rules! tuple_matcher {
 	($($name:ident $idx:tt), +) => {
-		impl<$($name:TextMatcherSource),+> TextMatcherSource for ($($name,)+) {
-			fn match_text(&self, text:&str) -> Option<TextMatchResult> {
+		impl<$($name:TextPredicate),+> TextPredicate for ($($name,)+) {
+			fn match_text(&self, text:&str) -> Option<MatchHit> {
 				let mut cursor = 0;
-				let mut sub_matches:Vec<TextMatchResult> = Vec::new();
+				let mut sub_matches:Vec<MatchHit> = Vec::new();
 				let text_len:usize = text.len();
 				$(
 					let text_remainder:&str = if text_len > cursor { &text[cursor..] } else { "" }; // Next matcher could match empty.
@@ -85,7 +85,7 @@ macro_rules! tuple_matcher {
 						return None;
 					}
 				)+
-				Some(TextMatchResult::new(cursor, text))
+				Some(MatchHit::new(cursor, text))
 			}
 		}
 	};

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-	use crate::{TextMatchResult, TextMatcherSource};
+	use crate::{MatchHit, TextPredicate};
 
 
 
@@ -33,9 +33,9 @@ mod tests {
 
 	#[test]
 	fn test_text_matcher_atom_fn() {
-		assert_eq!((|text:&str| if text == "xaba" { Some(TextMatchResult::new(3, text)) } else { None }).match_text("xaba").unwrap().length, 3);
-		assert_eq!((|text:&str| if text == "daba" { Some(TextMatchResult::new(3, text)) } else { None }).match_text("xaba"), None);
-		assert_eq!((|text:&str| if text == "daba" { Some(TextMatchResult::new(3, text)) } else { None }).match_text(""), None);
+		assert_eq!((|text:&str| if text == "xaba" { Some(MatchHit::new(3, text)) } else { None }).match_text("xaba").unwrap().length, 3);
+		assert_eq!((|text:&str| if text == "daba" { Some(MatchHit::new(3, text)) } else { None }).match_text("xaba"), None);
+		assert_eq!((|text:&str| if text == "daba" { Some(MatchHit::new(3, text)) } else { None }).match_text(""), None);
 	}
 
 

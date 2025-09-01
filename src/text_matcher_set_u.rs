@@ -1,12 +1,12 @@
 #[cfg(test)]
 mod tests {
-	use crate::{ TextMatchResult, TextMatcherSet, TextMatcherSource };
+	use crate::{ MatchHit, MatcherRegistry, TextPredicate };
 
 
 
 	#[test]
 	fn test_matcher_set_find_matcher() {
-		let set:TextMatcherSet = TextMatcherSet::new().with_matchers(vec![("a", 'a'), ("b", 'b')]);
+		let set:MatcherRegistry = MatcherRegistry::new().with_matchers(vec![("a", 'a'), ("b", 'b')]);
 		assert_eq!(set["a"].0, "a");
 		assert_eq!(set["a"].1.match_text("aba").unwrap().length, 1);
 		assert_eq!(set["a"].1.match_text("bab"), None);
@@ -18,49 +18,49 @@ mod tests {
 
 	#[test]
 	fn test_matcher_set_match_global() {
-		let set:TextMatcherSet = TextMatcherSet::new().with_matchers(vec![("a", 'a'), ("b", 'b')]);
+		let set:MatcherRegistry = MatcherRegistry::new().with_matchers(vec![("a", 'a'), ("b", 'b')]);
 
-		assert_eq!(set.match_text("abax").unwrap(), TextMatchResult { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() });
-		assert_eq!(set.match_text("bax").unwrap(), TextMatchResult { type_name: "b".to_string(), length: 1, contents: "b".to_string(), sub_matches: Vec::new() });
-		assert_eq!(set.match_text("ax").unwrap(), TextMatchResult { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() });
+		assert_eq!(set.match_text("abax").unwrap(), MatchHit { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() });
+		assert_eq!(set.match_text("bax").unwrap(), MatchHit { type_name: "b".to_string(), length: 1, contents: "b".to_string(), sub_matches: Vec::new() });
+		assert_eq!(set.match_text("ax").unwrap(), MatchHit { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() });
 		assert_eq!(set.match_text("x"), None);
 	}
 
 	#[test]
 	fn test_matcher_set_multi_match_global() {
-		let set:TextMatcherSet = TextMatcherSet::new().with_matchers(vec![("a", "a"), ("b", "b"), ("x", "xa")]);
+		let set:MatcherRegistry = MatcherRegistry::new().with_matchers(vec![("a", "a"), ("b", "b"), ("x", "xa")]);
 
 		assert_eq!(
 			set.multi_match_text("abaxa").sub_matches,
 			vec![
-				TextMatchResult { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() },
-				TextMatchResult { type_name: "b".to_string(), length: 1, contents: "b".to_string(), sub_matches: Vec::new() },
-				TextMatchResult { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() },
-				TextMatchResult { type_name: "x".to_string(), length: 2, contents: "xa".to_string(), sub_matches: Vec::new() }
+				MatchHit { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() },
+				MatchHit { type_name: "b".to_string(), length: 1, contents: "b".to_string(), sub_matches: Vec::new() },
+				MatchHit { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() },
+				MatchHit { type_name: "x".to_string(), length: 2, contents: "xa".to_string(), sub_matches: Vec::new() }
 			]
 		);
 	}
 
 	#[test]
 	fn test_matcher_set_find_match() {
-		let set:TextMatcherSet = TextMatcherSet::new().with_matchers(vec![("a", "a")]);
+		let set:MatcherRegistry = MatcherRegistry::new().with_matchers(vec![("a", "a")]);
 
 		assert_eq!(
 			set.find_match("ooabaxa").unwrap(),
-			(2, TextMatchResult { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() })
+			(2, MatchHit { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() })
 		);
 	}
 
 	#[test]
 	fn test_matcher_set_find_matches() {
-		let set:TextMatcherSet = TextMatcherSet::new().with_matchers(vec![("a", "a")]);
+		let set:MatcherRegistry = MatcherRegistry::new().with_matchers(vec![("a", "a")]);
 
 		assert_eq!(
 			set.find_matches("ooabaxa"),
 			vec![
-				(2, TextMatchResult { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() }),
-				(4, TextMatchResult { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() }),
-				(6, TextMatchResult { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() }),
+				(2, MatchHit { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() }),
+				(4, MatchHit { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() }),
+				(6, MatchHit { type_name: "a".to_string(), length: 1, contents: "a".to_string(), sub_matches: Vec::new() }),
 			]
 		);
 	}
