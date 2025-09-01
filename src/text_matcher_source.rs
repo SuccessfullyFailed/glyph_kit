@@ -1,3 +1,4 @@
+use std::ops::Range;
 use crate::MatchHit;
 
 
@@ -42,6 +43,7 @@ impl<T> TextPredicate for T where T:Fn(&str) -> Option<MatchHit> {
 }
 
 
+
 /* LIST IMPLEMENTATIONS */
 impl<T> TextPredicate for [T] where T:TextPredicate {
 	fn match_text(&self, text:&str) -> Option<MatchHit> {
@@ -66,9 +68,6 @@ impl<T> TextPredicate for Vec<T> where T:TextPredicate {
 	}
 }
 
-
-
-/* TUPLE IMPLEMENTATION */
 macro_rules! tuple_matcher {
 	($($name:ident $idx:tt), +) => {
 		impl<$($name:TextPredicate),+> TextPredicate for ($($name,)+) {
@@ -121,3 +120,19 @@ tuple_matcher!(A 0, B 1, C 2, D 3, E 4, F 5, G 6, H 7, I 8, J 9, K 10, L 11, M 1
 tuple_matcher!(A 0, B 1, C 2, D 3, E 4, F 5, G 6, H 7, I 8, J 9, K 10, L 11, M 12, N 13, O 14, P 15, Q 16, R 17, S 18, T 19, U 20, V 21, W 22, X 23, Y 24, Z 25, AA 26, AB 27, AC 28, AD 29);
 tuple_matcher!(A 0, B 1, C 2, D 3, E 4, F 5, G 6, H 7, I 8, J 9, K 10, L 11, M 12, N 13, O 14, P 15, Q 16, R 17, S 18, T 19, U 20, V 21, W 22, X 23, Y 24, Z 25, AA 26, AB 27, AC 28, AD 29, AE 30);
 tuple_matcher!(A 0, B 1, C 2, D 3, E 4, F 5, G 6, H 7, I 8, J 9, K 10, L 11, M 12, N 13, O 14, P 15, Q 16, R 17, S 18, T 19, U 20, V 21, W 22, X 23, Y 24, Z 25, AA 26, AB 27, AC 28, AD 29, AE 30, AF 31);
+
+
+
+/* MISCELLANEOUS IMPLEMENTATIONS */
+impl<T:TextPredicate> TextPredicate for Range<T> {
+	fn match_text(&self, text:&str) -> Option<MatchHit> {
+		if let Some(start_match) = self.start.match_text(text) {
+			for cursor in start_match.length..text.len() {
+				if let Some(end_match) = self.end.match_text(&text[cursor..]) {
+					return Some(MatchHit::new(cursor + end_match.length, text));
+				}
+			}
+		}
+		None
+	}
+}

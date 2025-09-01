@@ -75,4 +75,16 @@ mod tests {
 		assert_eq!(('x', "ab", 'a', 'x', "ab", 'a', 'x', "ab", 'a', 'x', "ab", 'a').match_text("xabaxabaxabaxabaxaba").unwrap().length, 16); // Full lengthy match
 		assert_eq!(('x', "ab", 'a', "").match_text(""), None); // Empty text mismatch
 	}
+
+
+
+	/* MISCELLANEOUS IMPLEMENTATION TESTS */
+
+	#[test]
+	fn test_text_matcher_misc_range() {
+		assert_eq!(("x".."b").match_text("xoba").unwrap().length, 3); // Partial lengthy match
+		assert_eq!(("x".."a").match_text("xoba").unwrap().length, 4); // Full match
+		assert_eq!(("b".."a").match_text("xoba"), None); // Full mismatch
+		assert_eq!(("x".."b").match_text(""), None); // Empty text mismatch
+	}
 }
