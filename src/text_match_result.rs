@@ -1,4 +1,4 @@
-use std::fmt::{ Display, Formatter, Result };
+use std::{ ops::Index, fmt::{ Display, Formatter, Result } };
 
 
 
@@ -170,5 +170,13 @@ impl MatchHit {
 impl Display for MatchHit {
 	fn fmt(&self, f:&mut Formatter<'_>) -> Result {
 		write!(f, "{}:\n{}\n\n", self.type_name, self.contents.split('\n').map(|line| format!(">>\t{line}")).collect::<Vec<String>>().join("\n"))
+	}
+}
+impl Index<&str> for MatchHit {
+	type Output = str;
+
+	fn index(&self, path:&str) -> &Self::Output {
+		let path:Vec<&str> = path.split(' ').map(|word| word.split('.')).flatten().collect();
+		self.find_child_by_type_path(&path).map(|child| child.contents.as_str()).unwrap_or_default()
 	}
 }

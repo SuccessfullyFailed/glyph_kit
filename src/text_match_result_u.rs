@@ -128,4 +128,15 @@ mod tests {
 		let root:MatchHit = MatchHit::named("root", 2, "ab");
 		assert!(root.find_child_by_type_path(&["missing"]).is_none());
 	}
+
+	#[test]
+	fn test_find_child_contents_by_string_indexer() {
+		let child_a:MatchHit = MatchHit::named("target", 2, "zz");
+		let child_b:MatchHit = MatchHit::named("target", 2, "xx");
+		let child_b_parent:MatchHit = MatchHit::named_with_sub_matches("target_parent", 2, "zz", vec![child_b.clone()]);
+		let root:MatchHit = MatchHit::named_with_sub_matches("root", 2, "zz", vec![child_a.clone(), child_b_parent.clone()]);
+		assert_eq!(&root["target_parent target"], "xx");
+		assert_eq!(&root["target_parent.target"], "xx");
+		assert_eq!(&root["target_parent.fake_target"], "");
+	}
 }
