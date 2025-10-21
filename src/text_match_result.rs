@@ -14,7 +14,7 @@ impl MatchHit {
 	/* CONSTRUCTOR METHODS */
 
 	/// Create a new result.
-	pub fn new(match_length:usize, source_text:&str) -> MatchHit {
+	pub(crate) fn new(match_length:usize, source_text:&str) -> MatchHit {
 		MatchHit {
 			type_name: String::new(),
 			length: match_length,
@@ -24,7 +24,7 @@ impl MatchHit {
 	}
 
 	/// Create a new result.
-	pub fn new_with_sub_matches(match_length:usize, source_text:&str, sub_matches:Vec<MatchHit>) -> MatchHit {
+	pub(crate) fn new_with_sub_matches(match_length:usize, source_text:&str, sub_matches:Vec<MatchHit>) -> MatchHit {
 		let mut result:MatchHit = MatchHit::new(match_length, source_text);
 		result.sub_matches = sub_matches;
 		result.combine_sub_matches();
@@ -35,14 +35,14 @@ impl MatchHit {
 	}
 
 	/// Create a new result with a name.
-	pub fn named(name:&str, match_length:usize, source_text:&str) -> MatchHit {
+	pub(crate) fn named(name:&str, match_length:usize, source_text:&str) -> MatchHit {
 		let mut result:MatchHit = MatchHit::new(match_length, source_text);
 		result.type_name = name.to_string();
 		result
 	}
 
 	/// Create a new result.
-	pub fn named_with_sub_matches(name:&str, match_length:usize, source_text:&str, sub_matches:Vec<MatchHit>) -> MatchHit {
+	pub(crate) fn named_with_sub_matches(name:&str, match_length:usize, source_text:&str, sub_matches:Vec<MatchHit>) -> MatchHit {
 		let mut result:MatchHit = MatchHit::named(name, match_length, source_text);
 		result.sub_matches = sub_matches;
 		result.combine_sub_matches();
@@ -57,7 +57,7 @@ impl MatchHit {
 	pub fn execute_recursive<T:Fn(&MatchHit) + 'static>(&self, action:T) {
 		self._execute_recursive(&action);
 	}
-	pub fn _execute_recursive(&self, action:&dyn Fn(&MatchHit)) {
+	fn _execute_recursive(&self, action:&dyn Fn(&MatchHit)) {
 		action(self);
 		for sub_match in &self.sub_matches {
 			sub_match._execute_recursive(action);
@@ -68,7 +68,7 @@ impl MatchHit {
 	pub fn execute_recursive_mut<T:Fn(&mut MatchHit) + 'static>(&mut self, action:T) {
 		self._execute_recursive_mut(&action);
 	}
-	pub fn _execute_recursive_mut(&mut self, action:&dyn Fn(&mut MatchHit)) {
+	fn _execute_recursive_mut(&mut self, action:&dyn Fn(&mut MatchHit)) {
 		action(self);
 		for sub_match in &mut self.sub_matches {
 			sub_match._execute_recursive_mut(action);
@@ -80,7 +80,7 @@ impl MatchHit {
 	/* CHILD METHODS */
 
 	/// Combine sub-matches.
-	pub fn combine_sub_matches(&mut self) {
+	fn combine_sub_matches(&mut self) {
 		let mut left_index:usize = 0;
 		let mut right_index:usize = 1;
 		while right_index < self.sub_matches.len() {
@@ -117,7 +117,7 @@ impl MatchHit {
 	pub fn find_child<T:Fn(&MatchHit) -> bool>(&self, filter:T) -> Option<&MatchHit> {
 		self._find_child(&filter)
 	}
-	pub fn _find_child(&self, filter:&dyn Fn(&MatchHit) -> bool) -> Option<&MatchHit> {
+	fn _find_child(&self, filter:&dyn Fn(&MatchHit) -> bool) -> Option<&MatchHit> {
 		if filter(self) {
 			return Some(self);
 		}
@@ -127,6 +127,21 @@ impl MatchHit {
 			}
 		}
 		None
+	}
+
+	/// Find a list of specific children by filter.
+	pub fn find_children<T:Fn(&MatchHit) -> bool>(&self, filter:T) -> Vec<&MatchHit> {
+		let mut list:Vec<&MatchHit> = Vec::new();
+		self._find_children(&filter, &mut list);
+		list
+	}
+	fn _find_children<'a>(&'a self, filter:&dyn Fn(&'a MatchHit) -> bool, list:&mut Vec<&'a MatchHit>) {
+		if filter(self) {
+			list.push(self);
+		}
+		for sub_match in &self.sub_matches {
+			sub_match._find_children(filter, list);
+		}
 	}
 
 	/// Find a specific child by a path of type names.

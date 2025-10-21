@@ -93,6 +93,16 @@ mod tests {
 	}
 
 	#[test]
+	fn test_find_children_nested() {
+		let child_a:MatchHit = MatchHit::named("target", 2, "zz");
+		let child_b:MatchHit = MatchHit::named("target", 2, "xx");
+		let child_b_parent:MatchHit = MatchHit::named_with_sub_matches("target_parent", 2, "zz", vec![child_b.clone()]);
+		let root:MatchHit = MatchHit::named_with_sub_matches("root", 2, "zz", vec![child_a.clone(), child_b_parent.clone()]);
+		let found:Vec<&MatchHit> = root.find_children(|c| c.type_name == "target");
+		assert_eq!(found, vec![&child_a, &child_b]);
+	}
+
+	#[test]
 	fn test_find_child_none() {
 		let root:MatchHit = MatchHit::named("root", 2, "ab");
 		assert!(root.find_child(|c| c.type_name == "missing").is_none());
