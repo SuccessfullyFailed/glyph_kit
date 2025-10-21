@@ -1,15 +1,15 @@
 pub mod languages;
 
-mod text_matcher_set;
-mod text_matcher_set_u;
-mod text_match_result;
-mod text_match_result_u;
-mod text_matcher;
-mod text_matcher_u;
+mod matcher_registry;
+mod matcher_registry_u;
+mod match_hit;
+mod match_hit_u;
+mod match_expression;
+mod match_expression_u;
 mod text_predicate;
 mod text_predicate_u;
 
-pub use text_matcher_set::*;
-pub use text_match_result::*;
-pub use text_matcher::*;
+pub use matcher_registry::*;
+pub use match_hit::*;
+pub use match_expression::*;
 pub use text_predicate::*;
