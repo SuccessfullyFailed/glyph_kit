@@ -1,4 +1,4 @@
-use std::{ rc::Rc, ops::{ Add, BitAnd, BitOr, Mul, Not } };
+use std::{ sync::Arc, ops::{ Add, BitAnd, BitOr, Mul, Not } };
 use crate::{ MatchHit, TextPredicate };
 
 
@@ -8,12 +8,12 @@ const LINE_BREAK_CHARS:&[char] = &['\n', '\r'];
 
 
 #[derive(Clone)]
-pub struct MatchExpr(Rc<dyn TextPredicate>);
+pub struct MatchExpr(Arc<dyn TextPredicate>);
 impl MatchExpr {
 
 	/// Create a new match-expression from a source.
 	pub fn new<T:TextPredicate + 'static>(source:T) -> MatchExpr {
-		MatchExpr(Rc::new(source))
+		MatchExpr(Arc::new(source))
 	}
 
 
@@ -155,7 +155,7 @@ impl MatchExpr {
 	/* HELPER METHODS */
 	
 	/// Create a match-expression that checks something on the first character.
-	fn on_first_char<T:Fn(char) -> bool + 'static>(compare_function:T) -> MatchExpr {
+	fn on_first_char<T:Fn(char) -> bool + Send + Sync + 'static>(compare_function:T) -> MatchExpr {
 		MatchExpr::new(move |text:&str| {
 			if !text.is_empty() {
 				if let Some(first_char) = text[..1].chars().next() {

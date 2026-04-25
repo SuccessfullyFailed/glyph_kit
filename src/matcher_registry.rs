@@ -11,24 +11,34 @@ impl MatcherRegistry {
 	/* CONSTRUCTOR METHODS */
 
 	/// Create a new registry.
-	pub fn new() -> MatcherRegistry {
+	pub const fn new() -> MatcherRegistry {
 		MatcherRegistry {
 			matchers: Vec::new()
 		}
 	}
 
-	/// Return self with an additional matcher to the set.
-	pub fn with_matcher<T:TextPredicate + 'static>(mut self, name:&str, matcher_source:T) -> Self {
-		self.matchers.push((name.to_string(), MatchExpr::new(matcher_source)));
+	/// Return self with multiple additional matchers to the set.
+	pub fn with_matchers<T:TextPredicate + 'static>(mut self, sources:Vec<(&str, T)>) -> Self {
+		self.add_matchers(sources);
 		self
 	}
 
-	/// Return self with multiple additional matchers to the set.
-	pub fn with_matchers<T:TextPredicate + 'static>(mut self, sources:Vec<(&str, T)>) -> Self {
-		for (name, matcher_source) in sources {
-			self = self.with_matcher(name, matcher_source)
-		}
+	/// Return self with an additional matcher to the set.
+	pub fn with_matcher<T:TextPredicate + 'static>(mut self, name:&str, matcher_source:T) -> Self {
+		self.add_matcher(name, matcher_source);
 		self
+	}
+
+	/// Add multiple matchers to the set.
+	pub fn add_matchers<T:TextPredicate + 'static>(&mut self, sources:Vec<(&str, T)>) {
+		for (name, source) in sources {
+			self.add_matcher(name, source);
+		}
+	}
+
+	/// Add a matcher to the set.
+	pub fn add_matcher<T:TextPredicate + 'static>(&mut self, name:&str, matcher_source:T) {
+		self.matchers.push((name.to_string(), MatchExpr::new(matcher_source)));
 	}
 
 

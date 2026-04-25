@@ -3,7 +3,7 @@ use crate::MatchHit;
 
 
 
-pub trait TextPredicate {
+pub trait TextPredicate:Send + Sync {
 
 	/// Try to match the given text. Returns a MatchHit in case of a match.
 	fn match_text(&self, text:&str) -> Option<MatchHit>;
@@ -36,7 +36,7 @@ impl TextPredicate for String {
 		self.as_str().match_text(text)
 	}
 }
-impl<T> TextPredicate for T where T:Fn(&str) -> Option<MatchHit> {
+impl<T:Fn(&str) -> Option<MatchHit> + Send + Sync> TextPredicate for T {
 	fn match_text(&self, text:&str) -> Option<MatchHit> {
 		self(text)
 	}
@@ -45,7 +45,7 @@ impl<T> TextPredicate for T where T:Fn(&str) -> Option<MatchHit> {
 
 
 /* LIST IMPLEMENTATIONS */
-impl<T> TextPredicate for [T] where T:TextPredicate {
+impl<T:TextPredicate> TextPredicate for [T] {
 	fn match_text(&self, text:&str) -> Option<MatchHit> {
 		let mut cursor:usize = 0;
 		let mut sub_matches:Vec<MatchHit> = Vec::new();
@@ -62,7 +62,24 @@ impl<T> TextPredicate for [T] where T:TextPredicate {
 		Some(MatchHit::new_with_sub_matches(cursor, text, sub_matches))
 	}
 }
-impl<T> TextPredicate for Vec<T> where T:TextPredicate {
+impl<T:TextPredicate, const SIZE:usize> TextPredicate for [T; SIZE] {
+	fn match_text(&self, text:&str) -> Option<MatchHit> {
+		let mut cursor:usize = 0;
+		let mut sub_matches:Vec<MatchHit> = Vec::new();
+		let text_len:usize = text.len();
+		for matcher in self {
+			let text_remainder:&str = if text_len > cursor { &text[cursor..] } else { "" }; // Next matcher could match empty.
+			if let Some(match_result) = matcher.match_text(&text_remainder) {
+				cursor += match_result.length;
+				sub_matches.push(match_result);
+			} else {
+				return None;
+			};
+		}
+		Some(MatchHit::new_with_sub_matches(cursor, text, sub_matches))
+	}
+}
+impl<T:TextPredicate> TextPredicate for Vec<T> {
 	fn match_text(&self, text:&str) -> Option<MatchHit> {
 		self[..].match_text(text)
 	}
